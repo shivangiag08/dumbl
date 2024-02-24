@@ -1,0 +1,16 @@
+equipment
+machine , cable, e-z curl bar, barbell - gym only
+body only - no equipment
+kettle bell, dumbbell, med ball, exercise ball, bands, foam roll - at home
+
+category
+['strength'
+ 'stretching' 
+ 'plyometrics' 'strongman' 'powerlifting' 'olympic weightlifting' - other
+ 'cardio']
+
+level
+['beginner' 'intermediate' 'expert']
+
+force
+['pull' 'push' 'static' None]
