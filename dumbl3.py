@@ -65,7 +65,7 @@ equipment_mapping = {'No equipment': 0, 'Basic at-home equipment': 1, 'Full gym 
 user_level = level_mapping[level]
 
 # Filter the data based on preferences.
-filtered_exercises = data[(data['level'] == user_level) & (data['equipment'] <= user_equipment)]
+filtered_exercises = data[(data['level'] == user_level) & (data['equipment'] <= equipment)]
 
 # Initialize or load the Replicate API token.
 if 'REPLICATE_API_TOKEN' in st.secrets:
