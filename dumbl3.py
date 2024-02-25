@@ -66,36 +66,28 @@ relevant_exercises = relevant_exercises[["name","primaryMuscles","category"]]
 # Adjusted function to generate workout suggestion using replicate.run
 def generate_workout_suggestion(prompt_input, relevant_exercises):
     model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
-    
     string_dialogue = f"You are a fitness assistant. Recommend the ideal workout based on the following:\n- User Input: {prompt_input}\n\nAvailable exercises: {relevant_exercises.to_string(index=False)}"
     
-    # Debug: Print the prompt to ensure it's formatted correctly
+    # Debug: Print the prompt
     st.write("Debug: Sending prompt to model:", string_dialogue)
-    
     try:
-        # Use replicate.run which returns a generator
         generator = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.5, "max_tokens": 150})
         
-        # Debug: Confirm we received a generator
+        # Debug: Confirm we have a generator
         st.write("Debug: Generator object type:", type(generator))
         
-        # Initialize an empty string to accumulate the responses
-        full_response = ""
+        # Attempt to directly inspect each item yielded by the generator
         for output in generator:
-            # Debug: Print each output from the generator to inspect its structure
+            # Debug: Print each yielded item
             st.write("Debug: Output from generator:", output)
             
-            # Assuming each output in the generator is a dictionary with a 'text' key
-            if 'text' in output:
-                full_response += output['text'] + "\n"
+            # Here, add logic based on the actual structure of `output`
+            # For now, we're just printing to understand what `output` contains
+            
+        # Placeholder for actual handling logic, depending on what's observed in the debug output
+        return "Check debug output for insights."
         
-        # Check if we received any response
-        if full_response:
-            return full_response
-        else:
-            return "No suggestion could be made."
     except Exception as e:
-        # Debug: Print any errors encountered during the process
         st.error(f"Debug: An error occurred: {str(e)}")
         return "No suggestion could be made."
 
