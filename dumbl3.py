@@ -75,21 +75,17 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
     try:
         generator = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.5, "max_tokens": 150})
         
-        # Debug: Confirm we have a generator
-        st.write("Debug: Generator object type:", type(generator))
-        
-        # Attempt to directly inspect each item yielded by the generator
+        # Directly inspect each item yielded by the generator
         for output in generator:
-            # Directly print each item yielded by the generator to inspect
-            st.write("Debug: Output from generator (raw):", output)
-            
-            # If we can identify a common structure or key here, adjust the next steps accordingly
-            
-        return "Check debug output for insights into the generator's yields."
+            # Attempt to print whatever is yielded directly
+            st.write("Yielded item:", output)
         
+        # If no output is seen, consider if the generator requires a 'send' to start yielding
+        if not any(True for _ in generator):  # This checks if the generator is empty
+            st.write("The generator did not yield any items.")
     except Exception as e:
-        st.error(f"Debug: An error occurred: {str(e)}")
-        return "No suggestion could be made."
+        st.error(f"Error iterating over generator: {e}")
+
 
 # getting the user input
 prompt_input = f"I am a {level} and I have {equipment}. I want a workout routine for 3 days this week.Pick out of these exercises and focus on similar regions of the body for each session. Dont try to include everything, pick out a few good exercises and curate the routine with reps and sets mentioned."
