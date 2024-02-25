@@ -92,4 +92,6 @@ if st.button("Suggest Workout"):
         print(full_response)
     # displaying the workout suggestion
     st.write("**Workout Suggestion:**")
+    if full_response:
+        st.button("Show Workout", key="show_workout")
     st.text(full_response)
