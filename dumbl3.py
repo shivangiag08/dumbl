@@ -1,141 +1,77 @@
 import streamlit as st
 import replicate
-import pandas as pd
 import os
 
-# Set up the page.
-st.set_page_config(page_title="Workout Recommender Chatbot")
-st.title('💪 Workout Recommender Chatbot')
+# App title
+st.set_page_config(page_title="🦙💬 Llama 2 Chatbot")
 
-# Assuming exercises.json is correctly formatted and in the same directory
-data = pd.read_json("exercises.json")
-data = data.drop(columns=["images", "instructions", "mechanic", "id"])
-
-if 'REPLICATE_API_TOKEN' in st.secrets:
-    replicate_api = st.secrets['REPLICATE_API_TOKEN']
-else:
-    replicate_api = st.text_input('Enter Replicate API token:', type='password')
-
-if replicate_api:
+# Replicate Credentials
+with st.sidebar:
+    st.title('🦙💬 Llama 2 Chatbot')
+    if 'REPLICATE_API_TOKEN' in st.secrets:
+        st.success('API key already provided!', icon='✅')
+        replicate_api = st.secrets['REPLICATE_API_TOKEN']
+    else:
+        replicate_api = st.text_input('Enter Replicate API token:', type='password')
+        if not (replicate_api.startswith('r8_') and len(replicate_api)==40):
+            st.warning('Please enter your credentials!', icon='⚠️')
+        else:
+            st.success('Proceed to entering your prompt message!', icon='👉')
     os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
-# mapping the equipment and level to numerical values
-equipment_mapping = {
-    "machine":2,
-    "cable":2,
-    "e-z curl bar":2,
-    "barbell":2,
-    "other":2,
+    st.subheader('Models and parameters')
+    selected_model = st.sidebar.selectbox('Choose a Llama2 model', ['Llama2-7B', 'Llama2-13B'], key='selected_model')
+    if selected_model == 'Llama2-7B':
+        llm = 'a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea'
+    elif selected_model == 'Llama2-13B':
+        llm = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
+    temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=5.0, value=0.1, step=0.01)
+    top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
+    max_length = st.sidebar.slider('max_length', min_value=32, max_value=128, value=120, step=8)
+    st.markdown('📖 Learn how to build this app in this [blog](https://blog.streamlit.io/how-to-build-a-llama-2-chatbot/)!')
 
-    "dumbbell":1,
-    "kettlebells":1,
-    "medicine ball":1,
-    "bands":1,
-    "exercise ball":1,
-    "foam roll":1,
+# Store LLM generated responses
+if "messages" not in st.session_state.keys():
+    st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
 
-    "body only":0,
-}
-
-level_mapping = {
-    "beginner":0,
-    "intermediate":1,
-    "expert":2,
-}
-
-data["equipment"] = data["equipment"].map(equipment_mapping)
-data["level"] = data["level"].map(level_mapping)
-
-# getting the user input
-equipment_mapping = {
-    "No equipment":0,
-    "Basic at-home equipment":1,
-    "Full gym access":2,
-}
-
-# Sidebar for user preferences.
-st.sidebar.header('Set Your Preferences')
-level = st.sidebar.selectbox('Choose your current fitness level', ['beginner', 'intermediate', 'expert'])
-equipment = st.sidebar.selectbox('Choose your preferred equipment', ['No equipment', 'Basic at-home equipment', 'Full gym access'])
-equipment = equipment_mapping[equipment]
-
-# Mapping preferences to data.
-level_mapping = {'beginner': 0, 'intermediate': 1, 'expert': 2}
-equipment_mapping = {'No equipment': 0, 'Basic at-home equipment': 1, 'Full gym access': 2}
-user_level = level_mapping[level]
-
-# Filter the data based on preferences.
-filtered_exercises = data[(data['level'] == user_level) & (data['equipment'] <= equipment)]
-
-# Initialize or load the Replicate API token.
-if 'REPLICATE_API_TOKEN' in st.secrets:
-    replicate_api = st.secrets['REPLICATE_API_TOKEN']
-else:
-    replicate_api = st.text_input('Enter Replicate API token:', type='password')
-
-# Initialize session state for storing chat history and context.
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Add a message to the chat history.
-def add_message(author, text):
-    st.session_state.messages.append({'author': author, 'text': text})
-
-# Display the chat history.
+# Display or clear chat messages
 for message in st.session_state.messages:
-    if message['author'] == 'user':
-        st.text_area('Your Message:', value=message['text'], height=75, disabled=True, label_visibility='collapsed')
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
 
-    else:
-        st.text_area('Your Message:', value=message['text'], height=100, disabled=True)
+def clear_chat_history():
+    st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
+st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 
-# Create a placeholder for the user input text box
-user_input_placeholder = st.empty()
+# Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
+def generate_llama2_response(prompt_input):
+    string_dialogue = "You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'."
+    for dict_message in st.session_state.messages:
+        if dict_message["role"] == "user":
+            string_dialogue += "User: " + dict_message["content"] + "\n\n"
+        else:
+            string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
+    output = replicate.run('a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5', 
+                           input={"prompt": f"{string_dialogue} {prompt_input} Assistant: ",
+                                  "temperature":temperature, "top_p":top_p, "max_length":max_length, "repetition_penalty":1})
+    return output
 
-# User input for chatbot.
-user_input = user_input_placeholder.text_input('Type your message here...', key='user_input')
+# User-provided prompt
+if prompt := st.chat_input(disabled=not replicate_api):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.write(prompt)
 
-# Function to get workout suggestions from LLaMA model.
-def get_workout_suggestion(user_message):
-    # Ensure the correct model reference.
-    model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5' 
-    
-    # Construct the prompt.
-    prompt = f"You are a fitness assistant. A user has the following preferences: level - {level}, equipment - {equipment}. They are asking: {user_message}"
-    
-    try:
-        # Use the Replicate API to run the model.
-        response = replicate.run(model_ref, {
-            'prompt': prompt,
-            'temperature': 0.5,
-            'max_tokens': 150
-        })
-
-        # Assuming the generator yields a single item with the response.
-        response_text = next(response)
-        return response_text
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-        return "I couldn't generate a workout suggestion at the moment. Please try again later."
-
-
-    
-# Replace the above code with the following:
-if st.button('Get Recommendation'):
-    if user_input:
-        # Add the user message to the chat history.
-        add_message('user', user_input)
-        
-        # Get the workout suggestion.
-        recommendation = get_workout_suggestion(user_input)
-        
-        # Add the assistant's response to the chat history.
-        add_message('assistant', recommendation)
-    
-    # Clear the input box using the placeholder.
-    user_input_placeholder.empty()
-
-
-# Clear the chat history.
-if st.sidebar.button('Clear Chat'):
-    st.session_state.messages = []
+# Generate a new response if last message is not from assistant
+if st.session_state.messages[-1]["role"] != "assistant":
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            response = generate_llama2_response(prompt)
+            placeholder = st.empty()
+            full_response = ''
+            for item in response:
+                full_response += item
+                placeholder.markdown(full_response)
+            placeholder.markdown(full_response)
+    message = {"role": "assistant", "content": full_response}
+    st.session_state.messages.append(message)
