@@ -78,7 +78,7 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
     string_dialogue += f"\nAvailable exercises: {relevant_exercises.to_string()}"
 
     output = replicate.run('a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5', input={"prompt": string_dialogue,"temperature":2.0, "top_p":0.8, "max_length":120, "repetition_penalty":1})
-    return output['']
+    return output
 
 # getting the user input
 prompt_input = f"I am a {level} and I have {equipment}. I want a workout routine for 3 days this week.Pick out of these exercises and focus on similar regions of the body for each session. Dont try to include everything, pick out a few good exercises and curate the routine with reps and sets mentioned."
