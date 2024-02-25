@@ -62,40 +62,95 @@ equipment = equipment_mapping[equipment]
 # filtering the data based on the user input
 relevant_exercises = data[(data["level"] == level_mapping[level]) & (data["equipment"] <= equipment)]
 relevant_exercises = relevant_exercises[["name","primaryMuscles","category"]]
-# function to generate workout suggestion
-# Adjusted function to generate workout suggestion using replicate.run
-def generate_workout_suggestion(prompt_input, relevant_exercises):
-    # Assuming llm variable is set based on user's model selection as in the chatbot example
-    model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
+
+if 'REPLICATE_API_TOKEN' in st.secrets:
+    replicate_api = st.secrets['REPLICATE_API_TOKEN']
+else:
+    replicate_api = st.text_input('Enter Replicate API token:', type='password')
+
+if replicate_api:
+    os.environ['REPLICATE_API_TOKEN'] = replicate_api
+
+# Initialize session state
+if "messages" not in st.session_state:
+    st.session_state.messages = [{"role": "assistant", "content": "Hello! I'm your fitness buddy. How can I assist you today?"}]
+if "conversation_context" not in st.session_state:
+    st.session_state.conversation_context = "general"
+
+# Function to add messages to chat
+def add_message(role, content):
+    st.session_state.messages.append({"role": role, "content": content})
+
+# Display chat messages
+for message in st.session_state.messages:
+    if message["role"] == "user":
+        st.text_area("", value=message["content"], key=f"user_{st.session_state.messages.index(message)}", height=75, disabled=True)
+    else:  # Assistant's messages
+        st.text_area("", value=message["content"], key=f"assistant_{st.session_state.messages.index(message)}", height=100, disabled=True, background_color="#f0f2f6")
+
+# User input for the chatbot
+user_input = st.text_input("Type your message here...", key="user_input")
+
+# Function to generate workout suggestions based on the conversation
+def get_workout_suggestion(prompt):
+    model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'  # Replace with your actual model
+    try:
+        response = replicate.predictions.create(model_ref, {
+            "prompt": prompt,
+            "temperature": 0.7,
+            "max_tokens": 150,
+            "top_p": 0.95,
+            "stop_sequences": ["###"]
+        })
+        return response[0]['text']
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+        return "I couldn't generate a workout suggestion at the moment. Please try again later."
+
+# Function to classify user queries and update context
+def classify_and_update_context(user_input):
+    # Example: simple keyword-based classification
+    context_keywords = {
+        "cardio": ["run", "cardio", "jog"],
+        "strength": ["lift", "strength", "weight"],
+        "flexibility": ["stretch", "flexibility", "yoga"]
+    }
+    for context, keywords in context_keywords.items():
+        if any(keyword in user_input.lower() for keyword in keywords):
+            st.session_state.conversation_context = context
+            return context
+    return "general"
+
+# Update this part within the button click handling
+if st.button('Get Recommendation') and user_input:
+    user_context = classify_and_update_context(user_input)
+    add_message("user", user_input)
+
+def get_workout_suggestion(prompt, user_context):
+    model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'  # Ensure correct model reference
     
-    # Construct the prompt with detailed information
-    string_dialogue = "You are a fitness assistant. Recommend the ideal workout based on the following criteria:\n\n"
-    string_dialogue += f"User Input: {prompt_input}\n\n"
-    string_dialogue += "Available exercises:\n" + relevant_exercises.to_string(index=False) + "\n\n"
-    
-    # Parameters for the model call, adjust based on your requirements
-    temperature = 0.5  # Adjust this value as necessary
-    top_p = 0.9  # Adjust this value as necessary
-    max_length = 120  # Adjust this value as necessary
+    # Enhance the prompt with contextual info
+    enhanced_prompt = f"{prompt}Given the user's interest in {user_context}, provide a suitable workout suggestion.\n\n###\n\n"
     
     try:
-        response_generator = replicate.run(model_ref, input={
-            "prompt": string_dialogue,
-            "temperature": temperature,
-            "top_p": top_p,
-            "max_length": max_length,
-            "repetition_penalty": 1
+        response_generator = replicate.run(model_ref, {
+            "prompt": enhanced_prompt,
+            "temperature": 0.7,
+            "max_length": 200,
+            "top_p": 0.95,
+            "stop_sequences": ["###"]
         })
-
-        for item in response_generator:
-            st.write("Yielded item:", item)
+        
+        # Concatenate text from generator
+        response_text = "".join([text for text in response_generator])
+        return response_text
     except Exception as e:
-        st.error(f"An error occurred while iterating over the generator: {str(e)}")
+        st.error(f"An error occurred: {str(e)}")
+        return "I couldn't generate a workout suggestion at the moment. Please try again later."
 
-
-
-# getting the user input
-prompt_input = f"I am a {level} and I have {equipment}. I want a workout routine for 3 days this week.Pick out of these exercises and focus on similar regions of the body for each session. Dont try to include everything, pick out a few good exercises and curate the routine with reps and sets mentioned."
-if replicate_api and st.button("Suggest Workout"):
-    workout_suggestion = generate_workout_suggestion(prompt_input, relevant_exercises)
-    st.write("**Workout Suggestion:**", workout_suggestion)
+# Within the button click handling, after updating context
+if st.button('Get Recommendation') and user_input:
+    # Context classification is already handled above
+    recommendation = get_workout_suggestion(user_input, st.session_state.conversation_context)
+    add_message("assistant", recommendation)
+    st.session_state.user_input = ""  # Optionally clear input field
