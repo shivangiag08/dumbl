@@ -69,13 +69,22 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
     
     string_dialogue = f"You are a fitness assistant. Recommend the ideal workout based on the following:\n- User Input: {prompt_input}\n\nAvailable exercises: {relevant_exercises.to_string(index=False)}"
     
+    # Debug: Print the prompt to ensure it's formatted correctly
+    st.write("Debug: Sending prompt to model:", string_dialogue)
+    
     try:
         # Use replicate.run which returns a generator
-        generator = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.1, "max_tokens": 100})
+        generator = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.5, "max_tokens": 150})
+        
+        # Debug: Confirm we received a generator
+        st.write("Debug: Generator object type:", type(generator))
         
         # Initialize an empty string to accumulate the responses
         full_response = ""
         for output in generator:
+            # Debug: Print each output from the generator to inspect its structure
+            st.write("Debug: Output from generator:", output)
+            
             # Assuming each output in the generator is a dictionary with a 'text' key
             if 'text' in output:
                 full_response += output['text'] + "\n"
@@ -84,13 +93,11 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
         if full_response:
             return full_response
         else:
-            return "No suggestion could be made.Stuck here"
+            return "No suggestion could be made."
     except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
+        # Debug: Print any errors encountered during the process
+        st.error(f"Debug: An error occurred: {str(e)}")
         return "No suggestion could be made."
-
-
-# The rest of your Streamlit app setup remains unchanged...
 
 # getting the user input
 prompt_input = f"I am a {level} and I have {equipment}. I want a workout routine for 3 days this week.Pick out of these exercises and focus on similar regions of the body for each session. Dont try to include everything, pick out a few good exercises and curate the routine with reps and sets mentioned."
