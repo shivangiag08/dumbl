@@ -63,16 +63,21 @@ equipment = equipment_mapping[equipment]
 relevant_exercises = data[(data["level"] == level_mapping[level]) & (data["equipment"] <= equipment)]
 
 # function to generate workout suggestion
+# Adjusted function to generate workout suggestion using replicate.run
 def generate_workout_suggestion(prompt_input, relevant_exercises):
-    # Assuming the correct model reference; replace with your actual model
     model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
     
     string_dialogue = f"You are a fitness assistant. Recommend the ideal workout based on the following:\n- User Input: {prompt_input}\n\nAvailable exercises: {relevant_exercises.to_string(index=False)}"
     
-    # Assuming 'replicate.predictions.create' is the correct method based on your package version and documentation
-    output = replicate.predictions.create(model_ref, input={"prompt": string_dialogue, "temperature": 0.5, "max_tokens": 150})
-    return output['choices'][0]['text'] if output else "No suggestion could be made."
+    # Adjusted to use replicate.run assuming it's available and correct for your needs
+    try:
+        output = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.5, "max_tokens": 150})
+        return output['choices'][0]['text'] if 'choices' in output and output['choices'] else "No suggestion could be made."
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+        return "No suggestion could be made."
 
+# The rest of your Streamlit app setup remains unchanged...
 
 # getting the user input
 prompt_input = f"I am a {level} and I have {equipment}. I want a workout routine for 3 days this week.Pick out of these exercises and focus on similar regions of the body for each session. Dont try to include everything, pick out a few good exercises and curate the routine with reps and sets mentioned."
