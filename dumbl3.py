@@ -11,8 +11,6 @@ st.title('💪 Workout Recommender Chatbot')
 data = pd.read_json("exercises.json")
 data = data.drop(columns=["images", "instructions", "mechanic", "id"])
 
-st.title('💪🏼 Workout Recommender')
-
 if 'REPLICATE_API_TOKEN' in st.secrets:
     replicate_api = st.secrets['REPLICATE_API_TOKEN']
 else:
