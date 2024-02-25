@@ -48,9 +48,7 @@ data["level"] = data["level"].map(level_mapping)
 
 # getting the user input
 level = st.selectbox('Choose your current fitness level', ['beginner', 'intermediate', 'expert'])
-
 equipment = st.selectbox('Choose your preferred equipment', ['No equipment','Basic at-home equipment','Full gym access'])
-
 equipment_mapping = {
     "No equipment":0,
     "Basic at-home equipment":1,
@@ -62,14 +60,6 @@ equipment = equipment_mapping[equipment]
 # filtering the data based on the user input
 relevant_exercises = data[(data["level"] == level_mapping[level]) & (data["equipment"] <= equipment)]
 relevant_exercises = relevant_exercises[["name","primaryMuscles","category"]]
-
-if 'REPLICATE_API_TOKEN' in st.secrets:
-    replicate_api = st.secrets['REPLICATE_API_TOKEN']
-else:
-    replicate_api = st.text_input('Enter Replicate API token:', type='password')
-
-if replicate_api:
-    os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
 # Initialize session state
 if "messages" not in st.session_state:
@@ -88,8 +78,9 @@ for message in st.session_state.messages:
     else:  # Assistant's messages
         st.text_area("", value=message["content"], key=f"assistant_{st.session_state.messages.index(message)}", height=100, disabled=True)
 
+user_input_placeholder = st.empty()
 # User input for the chatbot
-user_input = st.text_input("Type your message here...", key="user_input")
+user_input = user_input_placeholder.text_input("Type your message here...", key="user_input")
 
 # Function to classify user queries and update context
 def classify_and_update_context(user_input):
@@ -149,5 +140,5 @@ if st.button('Get Recommendation') and user_input:
     # Add the assistant's response to the chat
     add_message("assistant", recommendation)
     
-    # Clear the user input
-    st.session_state.user_input = ""
+    # Clear the user input field using the placeholder
+    user_input_placeholder.empty()
