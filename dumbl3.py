@@ -90,7 +90,7 @@ if st.button("Suggest Workout"):
     full_response = ""
     st.text(type(workout_suggestion))
     for item in workout_suggestion:
-        full_response += item
+        full_response += str(item)
         placeholder.markdown(full_response)
     placeholder.markdown(full_response)
     # displaying the workout suggestion
