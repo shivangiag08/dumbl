@@ -100,7 +100,7 @@ def classify_and_update_context(user_input):
     return "general"
 # Function to generate workout suggestions based on the conversation
 def get_workout_suggestion(prompt, user_context):
-    model_ref = 'a16z-infra/llama13b-v2-chat:latest'  # Replace with the correct LLaMA model reference
+    model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'  # Replace with the correct LLaMA model reference
     
     # Construct the full prompt with the user context and conversation history
     full_prompt = f"You are a fitness assistant. {prompt} Given the user's interest in {user_context}, provide a suitable workout suggestion. Stick to similar regions of the body and don't try to give too many exercises. Only suggest 3-4 exercises along with reps and sets.\n\n###\n\n"
