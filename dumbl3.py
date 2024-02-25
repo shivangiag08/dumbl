@@ -1,5 +1,6 @@
 import streamlit as st
 import replicate
+import pandas as pd
 import os
 
 # App title
