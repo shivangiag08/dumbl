@@ -6,7 +6,7 @@ import os
 # App title
 st.set_page_config(page_title="Workout Recommender")
 
-data = pd.read_json("exercises.json")
+'''data = pd.read_json("exercises.json")
 data = data.drop(columns=["images","instructions","mechanic"])
 
 equipment_mapping = {
@@ -38,8 +38,8 @@ data["level"] = data["level"].map(level_mapping)
 equipment_mapping = {
     "No equipment":0,
     "Basic at-home equipment":1,
-    "Access to a Gym":2,
-}
+    "Access to a Gym":2,}'''
+
 # Replicate Credentials
 with st.sidebar:
     st.title('💪\n Workout Recommender')
@@ -58,7 +58,7 @@ with st.sidebar:
     equipment = st.sidebar.selectbox('Choose your preferred equipment', ['No equipment', 'Basic at-home equipment', 'Access to a Gym'])
     st.markdown('🫂 Recommend us to your friends!')
 
-relevant_exercises = data[(data["level"] == level) & (data["equipment"] <= equipment_mapping[equipment])]
+#relevant_exercises = data[(data["level"] == level) & (data["equipment"] <= equipment_mapping[equipment])]
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
     st.session_state.messages = [{"role": "assistant", "content": "What can I help you with today?"}]
