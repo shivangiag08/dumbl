@@ -47,11 +47,7 @@ data["equipment"] = data["equipment"].map(equipment_mapping)
 data["level"] = data["level"].map(level_mapping)
 
 # getting the user input
-equipment_mapping = {
-    "No equipment":0,
-    "Basic at-home equipment":1,
-    "Full gym access":2,
-}
+
 
 # Sidebar for user preferences.
 st.sidebar.header('Set Your Preferences')

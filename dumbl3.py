@@ -5,6 +5,40 @@ import os
 # App title
 st.set_page_config(page_title="Workout Recommender")
 
+data = pd.read_json("exercises.json")
+data = data.drop(columns=["images","instructions","mechanic"])
+
+equipment_mapping = {
+    "machine":2,
+    "cable":2,
+    "e-z curl bar":2,
+    "barbell":2,
+    "other":2,
+
+    "dumbbell":1,
+    "kettlebells":1,
+    "medicine ball":1,
+    "bands":1,
+    "exercise ball":1,
+    "foam roll":1,
+
+    "body only":0,
+}
+
+level_mapping = {
+    "beginner":0,
+    "intermediate":1,
+    "expert":2,
+}
+
+data["equipment"] = data["equipment"].map(equipment_mapping)
+data["level"] = data["level"].map(level_mapping)
+
+equipment_mapping = {
+    "No equipment":0,
+    "Basic at-home equipment":1,
+    "Access to a Gym":2,
+}
 # Replicate Credentials
 with st.sidebar:
     st.title('💪\n Workout Recommender')
@@ -20,9 +54,10 @@ with st.sidebar:
 
     st.subheader('Select your Parameters')
     level = st.sidebar.selectbox('Choose your current fitness level', ['beginner', 'intermediate', 'expert'])
-    equipment = st.sidebar.selectbox('Choose your preferred equipment', ['No equipment', 'Basic at-home equipment', 'Full gym access'])
+    equipment = st.sidebar.selectbox('Choose your preferred equipment', ['No equipment', 'Basic at-home equipment', 'Access to a Gym'])
     st.markdown('🫂 Recommend us to your friends!')
 
+relevant_exercises = data[(data["level"] == level) & (data["equipment"] <= equipment_mapping[equipment])]
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
     st.session_state.messages = [{"role": "assistant", "content": "What can I help you with today?"}]
@@ -38,7 +73,7 @@ st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
 def generate_llama2_response(prompt_input):
-    string_dialogue = f"You are a gym trainer. You only respond once as 'Gym Trainer'. You have to suggest a well balanced workout plan to the user based on their request. Dont ask too many questions and keep answers short. Give workout routines as a list of 3-5 exercises and include the number of sets and reps for each exercise.The user is a {level} and has {equipment}. Do not ask "
+    string_dialogue = f"You are a gym trainer. You only respond once as 'Gym Trainer'. You have to suggest a well balanced workout plan to the user based on their request. Dont ask too many questions and keep answers to the point. Give workout routines as a list of 3-5 exercises and include the number of sets and reps for each exercise.The user is a {level} and has {equipment}. Do not ask too many questions."
     for dict_message in st.session_state.messages:
         if dict_message["role"] == "user":
             string_dialogue += "User: " + dict_message["content"] + "\n\n"
