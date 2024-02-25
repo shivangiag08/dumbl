@@ -91,22 +91,6 @@ for message in st.session_state.messages:
 # User input for the chatbot
 user_input = st.text_input("Type your message here...", key="user_input")
 
-# Function to generate workout suggestions based on the conversation
-def get_workout_suggestion(prompt):
-    model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'  # Replace with your actual model
-    try:
-        response = replicate.predictions.create(model_ref, {
-            "prompt": prompt,
-            "temperature": 0.7,
-            "max_tokens": 150,
-            "top_p": 0.95,
-            "stop_sequences": ["###"]
-        })
-        return response[0]['text']
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-        return "I couldn't generate a workout suggestion at the moment. Please try again later."
-
 # Function to classify user queries and update context
 def classify_and_update_context(user_input):
     # Example: simple keyword-based classification
@@ -130,7 +114,7 @@ def get_workout_suggestion(prompt, user_context):
     model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'  # Ensure correct model reference
     
     # Enhance the prompt with contextual info
-    enhanced_prompt = f"{prompt}Given the user's interest in {user_context}, provide a suitable workout suggestion.\n\n###\n\n"
+    enhanced_prompt = f"{prompt}Given the user's interest in {user_context}, provide a suitable workout suggestion.Stick to similar regions of the body and dont try to give too many exercises. only suggest 3-4 along with reps and sets.\n\n###\n\n"
     
     try:
         response_generator = replicate.run(model_ref, {
