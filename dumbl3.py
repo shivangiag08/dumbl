@@ -86,7 +86,7 @@ for message in st.session_state.messages:
     if message["role"] == "user":
         st.text_area("", value=message["content"], key=f"user_{st.session_state.messages.index(message)}", height=75, disabled=True)
     else:  # Assistant's messages
-        st.text_area("", value=message["content"], key=f"assistant_{st.session_state.messages.index(message)}", height=100, disabled=True, background_color="#f0f2f6")
+        st.text_area("", value=message["content"], key=f"assistant_{st.session_state.messages.index(message)}", height=100, disabled=True)
 
 # User input for the chatbot
 user_input = st.text_input("Type your message here...", key="user_input")
@@ -104,37 +104,50 @@ def classify_and_update_context(user_input):
             st.session_state.conversation_context = context
             return context
     return "general"
-
-# Update this part within the button click handling
-if st.button('Get Recommendation') and user_input:
-    user_context = classify_and_update_context(user_input)
-    add_message("user", user_input)
-
+# Function to generate workout suggestions based on the conversation
 def get_workout_suggestion(prompt, user_context):
-    model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'  # Ensure correct model reference
+    model_ref = 'a16z-infra/llama13b-v2-chat:latest'  # Replace with the correct LLaMA model reference
     
-    # Enhance the prompt with contextual info
-    enhanced_prompt = f"{prompt}Given the user's interest in {user_context}, provide a suitable workout suggestion.Stick to similar regions of the body and dont try to give too many exercises. only suggest 3-4 along with reps and sets.\n\n###\n\n"
+    # Construct the full prompt with the user context and conversation history
+    full_prompt = f"You are a fitness assistant. {prompt} Given the user's interest in {user_context}, provide a suitable workout suggestion. Stick to similar regions of the body and don't try to give too many exercises. Only suggest 3-4 exercises along with reps and sets.\n\n###\n\n"
+    
+    # Iterate over the messages to add to the prompt
+    for msg in st.session_state.messages:
+        full_prompt += f"{msg['role'].capitalize()}: {msg['content']}\n\n"
+    
+    # Add stopping sequence to end the generation
+    full_prompt += "###"
     
     try:
-        response_generator = replicate.run(model_ref, {
-            "prompt": enhanced_prompt,
+        # Call the Replicate API
+        response = replicate.run(model_ref, {
+            "prompt": full_prompt,
             "temperature": 0.7,
-            "max_length": 200,
+            "max_tokens": 150,
             "top_p": 0.95,
             "stop_sequences": ["###"]
         })
         
-        # Concatenate text from generator
-        response_text = "".join([text for text in response_generator])
+        # Assuming the response is a list and the first item is the text
+        response_text = response[0] if response else "No response generated."
         return response_text
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         return "I couldn't generate a workout suggestion at the moment. Please try again later."
 
-# Within the button click handling, after updating context
+# Handle button click to get recommendation
 if st.button('Get Recommendation') and user_input:
-    # Context classification is already handled above
-    recommendation = get_workout_suggestion(user_input, st.session_state.conversation_context)
+    # Obtain the context from the user's input message
+    user_context = classify_and_update_context(user_input)
+    
+    # Add the user's message to the chat
+    add_message("user", user_input)
+    
+    # Generate the workout suggestion
+    recommendation = get_workout_suggestion(user_input, user_context)
+    
+    # Add the assistant's response to the chat
     add_message("assistant", recommendation)
-    st.session_state.user_input = ""  # Optionally clear input field
+    
+    # Clear the user input
+    st.session_state.user_input = ""
