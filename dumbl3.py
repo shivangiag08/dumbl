@@ -72,11 +72,14 @@ def add_message(role, content):
     st.session_state.messages.append({"role": role, "content": content})
 
 # Display chat messages
+# Display chat messages
 for message in st.session_state.messages:
-    if message["role"] == "user":
-        st.text_area("", value=message["content"], key=f"user_{st.session_state.messages.index(message)}", height=75, disabled=True)
+    role = message["role"]
+    key_suffix = st.session_state.messages.index(message)
+    if role == "user":
+        st.text_area(label=f"User Message {key_suffix}", value=message["content"], key=f"user_{key_suffix}", height=75, disabled=True, label_visibility='collapsed')
     else:  # Assistant's messages
-        st.text_area("", value=message["content"], key=f"assistant_{st.session_state.messages.index(message)}", height=100, disabled=True)
+        st.text_area(label=f"Assistant Message {key_suffix}", value=message["content"], key=f"assistant_{key_suffix}", height=100, disabled=True, label_visibility='collapsed')
 
 user_input_placeholder = st.empty()
 # User input for the chatbot
