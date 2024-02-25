@@ -65,7 +65,6 @@ equipment = equipment_mapping[equipment]
 level_mapping = {'beginner': 0, 'intermediate': 1, 'expert': 2}
 equipment_mapping = {'No equipment': 0, 'Basic at-home equipment': 1, 'Full gym access': 2}
 user_level = level_mapping[level]
-user_equipment = equipment_mapping[equipment]
 
 # Filter the data based on preferences.
 filtered_exercises = data[(data['level'] == user_level) & (data['equipment'] <= user_equipment)]
