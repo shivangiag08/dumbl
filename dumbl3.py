@@ -89,6 +89,7 @@ if st.button("Suggest Workout"):
     full_response = ""
     for item in workout_suggestion:  # Iterate over the generator to extract text
         full_response += item
+        print(full_response)
     # displaying the workout suggestion
     st.write("**Workout Suggestion:**")
     st.text(full_response)
