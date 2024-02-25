@@ -9,7 +9,7 @@ st.set_page_config(page_title="💪🏼 Workout Recommender")
 data = pd.read_json("exercises.json")
 data = data.drop(columns=["images","instructions","mechanic","id"])
 
-st.title('🦙💬 Llama 2 Chatbot')
+st.title('💪🏼 Workout Recommender')
 if 'REPLICATE_API_TOKEN' in st.secrets:
     replicate_api = st.secrets['REPLICATE_API_TOKEN']
 os.environ['REPLICATE_API_TOKEN'] = replicate_api
