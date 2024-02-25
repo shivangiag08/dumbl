@@ -84,12 +84,16 @@ def add_message(author, text):
 # Display the chat history.
 for message in st.session_state.messages:
     if message['author'] == 'user':
-        st.text_area('', value=message['text'], height=75, disabled=True)
+        st.text_area('Your Message:', value=message['text'], height=75, disabled=True, label_visibility='collapsed')
+
     else:
-        st.text_area('', value=message['text'], height=100, disabled=True)
+        st.text_area('Your Message:', value=message['text'], height=100, disabled=True)
+
+# Create a placeholder for the user input text box
+user_input_placeholder = st.empty()
 
 # User input for chatbot.
-user_input = st.text_input('Type your message here...', key='user_input')
+user_input = user_input_placeholder.text_input('Type your message here...', key='user_input')
 
 # Function to get workout suggestions from LLaMA model.
 def get_workout_suggestion(user_message):
@@ -114,19 +118,23 @@ def get_workout_suggestion(user_message):
         st.error(f"An error occurred: {str(e)}")
         return "I couldn't generate a workout suggestion at the moment. Please try again later."
 
-# Handle button click to get recommendation.
-if st.button('Get Recommendation') and user_input:
-    # Add the user message to the chat history.
-    add_message('user', user_input)
+
     
-    # Get the workout suggestion.
-    recommendation = get_workout_suggestion(user_input)
+# Replace the above code with the following:
+if st.button('Get Recommendation'):
+    if user_input:
+        # Add the user message to the chat history.
+        add_message('user', user_input)
+        
+        # Get the workout suggestion.
+        recommendation = get_workout_suggestion(user_input)
+        
+        # Add the assistant's response to the chat history.
+        add_message('assistant', recommendation)
     
-    # Add the assistant's response to the chat history.
-    add_message('assistant', recommendation)
-    
-    # Clear the input box.
-    st.session_state['user_input'] = ''
+    # Clear the input box using the placeholder.
+    user_input_placeholder.empty()
+
 
 # Clear the chat history.
 if st.sidebar.button('Clear Chat'):
