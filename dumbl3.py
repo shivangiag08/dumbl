@@ -79,7 +79,6 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
     max_length = 120  # Adjust this value as necessary
     
     try:
-        # Call the Replicate API with the constructed prompt and parameters
         response = replicate.run(model_ref, input={
             "prompt": string_dialogue,
             "temperature": temperature,
@@ -87,19 +86,11 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
             "max_length": max_length,
             "repetition_penalty": 1
         })
-        
-        # Initialize an empty string to accumulate the responses
-        full_response = ''
-        for item in response:
-            # Assuming each item in the response is a piece of text
-            full_response += str(item)  # Append each item to the full_response string
-        
-        # Return the accumulated response
-        return full_response if full_response else "No suggestion could be made."
+        # Directly inspect the response
+        st.write("Response type:", type(response))
+        st.write("Response content:", response)
     except Exception as e:
-        # If an error occurs, log it and return a default message
         st.error(f"An error occurred: {str(e)}")
-        return "No suggestion could be made."
 
 
 
