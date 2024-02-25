@@ -79,18 +79,18 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
     max_length = 120  # Adjust this value as necessary
     
     try:
-        response = replicate.run(model_ref, input={
+        response_generator = replicate.run(model_ref, input={
             "prompt": string_dialogue,
             "temperature": temperature,
             "top_p": top_p,
             "max_length": max_length,
             "repetition_penalty": 1
         })
-        # Directly inspect the response
-        st.write("Response type:", type(response))
-        st.write("Response content:", response)
+
+        for item in response_generator:
+            st.write("Yielded item:", item)
     except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
+        st.error(f"An error occurred while iterating over the generator: {str(e)}")
 
 
 
