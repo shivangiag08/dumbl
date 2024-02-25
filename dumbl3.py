@@ -87,6 +87,7 @@ prompt_input = f"I am a {level} and I have {equipment}. I want a workout routine
 if st.button("Suggest Workout"):
     workout_suggestion = generate_workout_suggestion(prompt_input, relevant_exercises)
     full_response = ""
+    st.text(type(workout_suggestion))
     for item in workout_suggestion:  # Iterate over the generator to extract text
         full_response += item
         print(full_response)
