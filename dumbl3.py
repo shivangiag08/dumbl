@@ -5,16 +5,19 @@ import os
 
 st.set_page_config(page_title="💪🏼 Workout Recommender")
 
-# loading the exercise data
+# Assuming exercises.json is correctly formatted and in the same directory
 data = pd.read_json("exercises.json")
-data = data.drop(columns=["images","instructions","mechanic","id"])
+data = data.drop(columns=["images", "instructions", "mechanic", "id"])
 
 st.title('💪🏼 Workout Recommender')
+
 if 'REPLICATE_API_TOKEN' in st.secrets:
     replicate_api = st.secrets['REPLICATE_API_TOKEN']
 else:
     replicate_api = st.text_input('Enter Replicate API token:', type='password')
-os.environ['REPLICATE_API_TOKEN'] = replicate_api
+
+if replicate_api:
+    os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
 # mapping the equipment and level to numerical values
 equipment_mapping = {
@@ -61,32 +64,18 @@ relevant_exercises = data[(data["level"] == level_mapping[level]) & (data["equip
 
 # function to generate workout suggestion
 def generate_workout_suggestion(prompt_input, relevant_exercises):
-    llm = 'a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea'
+    # Assuming the correct model reference; replace with your actual model
+    model_ref = 'a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea'
+    
+    string_dialogue = f"You are a fitness assistant. Recommend the ideal workout based on the following:\n- User Input: {prompt_input}\n\nAvailable exercises: {relevant_exercises.to_string(index=False)}"
+    
+    # Assuming 'replicate.predictions.create' is the correct method based on your package version and documentation
+    output = replicate.predictions.create(model_ref, input={"prompt": string_dialogue, "temperature": 0.5, "max_tokens": 150})
+    return output['choices'][0]['text'] if output else "No suggestion could be made."
 
-
-    string_dialogue = f"You are a fitness assistant. Recommend the ideal workout based on the following:\n"
-    string_dialogue += f"- User Input: {prompt_input}\n"
-
-    # Add exercise data to context (similar to chatbot approach)
-    string_dialogue += f"\nAvailable exercises: {relevant_exercises.to_string()}"
-
-    output = replicate.run('a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5', input={"prompt": string_dialogue,"temperature":0.1, "top_p":0.9, "max_length":12, "repetition_penalty":1})
-    return output
 
 # getting the user input
 prompt_input = f"I am a {level} and I have {equipment}. I want a workout routine for 3 days this week.Pick out of these exercises and focus on similar regions of the body for each session. Dont try to include everything, pick out a few good exercises and curate the routine with reps and sets mentioned."
-
-# generating the workout suggestion
-if st.button("Suggest Workout"):
+if replicate_api and st.button("Suggest Workout"):
     workout_suggestion = generate_workout_suggestion(prompt_input, relevant_exercises)
-    placeholder = st.empty()
-    full_response = ""
-    for item in workout_suggestion:
-        full_response += str(item)
-        placeholder.markdown(full_response)
-    st.text(placeholder.markdown(full_response))
-    # displaying the workout suggestion
-    st.write("**Workout Suggestion:**")
-    if full_response:
-        st.button("Show Workout", key="show_workout")
-    st.text(full_response)
+    st.write("**Workout Suggestion:**", workout_suggestion)
