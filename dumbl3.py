@@ -73,13 +73,12 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
     st.write("Debug: Sending prompt to model:", string_dialogue)
     
     try:
-        generator = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.5, "max_tokens": 150})
+        generator = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.1,"top_p":0.9, "max_length": 160})
         
         # Directly inspect each item yielded by the generator
         for output in generator:
             # Attempt to print whatever is yielded directly
-            st.write("Yielded item:", output)
-        
+            st.write("Yielded item:", output)        
         # If no output is seen, consider if the generator requires a 'send' to start yielding
         if not any(True for _ in generator):  # This checks if the generator is empty
             st.write("The generator did not yield any items.")
