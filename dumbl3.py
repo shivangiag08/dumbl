@@ -61,7 +61,7 @@ equipment = equipment_mapping[equipment]
 
 # filtering the data based on the user input
 relevant_exercises = data[(data["level"] == level_mapping[level]) & (data["equipment"] <= equipment)]
-
+relevant_exercises = relevant_exercises[["name","primaryMuscles","category"]]
 # function to generate workout suggestion
 # Adjusted function to generate workout suggestion using replicate.run
 def generate_workout_suggestion(prompt_input, relevant_exercises):
@@ -69,13 +69,26 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
     
     string_dialogue = f"You are a fitness assistant. Recommend the ideal workout based on the following:\n- User Input: {prompt_input}\n\nAvailable exercises: {relevant_exercises.to_string(index=False)}"
     
-    # Adjusted to use replicate.run assuming it's available and correct for your needs
     try:
-        output = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.5, "max_tokens": 150})
-        return output['choices'][0]['text'] if 'choices' in output and output['choices'] else "No suggestion could be made."
+        # Use replicate.run which returns a generator
+        generator = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.1, "max_tokens": 100})
+        
+        # Initialize an empty string to accumulate the responses
+        full_response = ""
+        for output in generator:
+            # Assuming each output in the generator is a dictionary with a 'text' key
+            if 'text' in output:
+                full_response += output['text'] + "\n"
+        
+        # Check if we received any response
+        if full_response:
+            return full_response
+        else:
+            return "No suggestion could be made.Stuck here"
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         return "No suggestion could be made."
+
 
 # The rest of your Streamlit app setup remains unchanged...
 
