@@ -77,7 +77,7 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
     # Add exercise data to context (similar to chatbot approach)
     string_dialogue += f"\nAvailable exercises: {relevant_exercises.to_string()}"
 
-    output = replicate.run('a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5', input={"prompt": string_dialogue,"temperature":2.0, "top_p":0.8, "max_length":500, "repetition_penalty":1})
+    output = replicate.run('a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5', input={"prompt": string_dialogue,"temperature":2.0, "top_p":0.8, "max_length":120, "repetition_penalty":1})
     return output
 
 # getting the user input
