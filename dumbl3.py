@@ -7,14 +7,59 @@ import os
 st.set_page_config(page_title="Workout Recommender Chatbot")
 st.title('💪 Workout Recommender Chatbot')
 
-# Load the exercise data.
+# Assuming exercises.json is correctly formatted and in the same directory
 data = pd.read_json("exercises.json")
 data = data.drop(columns=["images", "instructions", "mechanic", "id"])
+
+st.title('💪🏼 Workout Recommender')
+
+if 'REPLICATE_API_TOKEN' in st.secrets:
+    replicate_api = st.secrets['REPLICATE_API_TOKEN']
+else:
+    replicate_api = st.text_input('Enter Replicate API token:', type='password')
+
+if replicate_api:
+    os.environ['REPLICATE_API_TOKEN'] = replicate_api
+
+# mapping the equipment and level to numerical values
+equipment_mapping = {
+    "machine":2,
+    "cable":2,
+    "e-z curl bar":2,
+    "barbell":2,
+    "other":2,
+
+    "dumbbell":1,
+    "kettlebells":1,
+    "medicine ball":1,
+    "bands":1,
+    "exercise ball":1,
+    "foam roll":1,
+
+    "body only":0,
+}
+
+level_mapping = {
+    "beginner":0,
+    "intermediate":1,
+    "expert":2,
+}
+
+data["equipment"] = data["equipment"].map(equipment_mapping)
+data["level"] = data["level"].map(level_mapping)
+
+# getting the user input
+equipment_mapping = {
+    "No equipment":0,
+    "Basic at-home equipment":1,
+    "Full gym access":2,
+}
 
 # Sidebar for user preferences.
 st.sidebar.header('Set Your Preferences')
 level = st.sidebar.selectbox('Choose your current fitness level', ['beginner', 'intermediate', 'expert'])
 equipment = st.sidebar.selectbox('Choose your preferred equipment', ['No equipment', 'Basic at-home equipment', 'Full gym access'])
+equipment = equipment_mapping[equipment]
 
 # Mapping preferences to data.
 level_mapping = {'beginner': 0, 'intermediate': 1, 'expert': 2}
