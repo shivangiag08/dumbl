@@ -79,7 +79,7 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
 
     output = replicate.run(llm, 
                            input={"prompt": string_dialogue,
-                                   "temperature":2.0, "top_p":0.8, "max_length":500, "repetition_penalty":1})
+                                   "temperature":2.0, "top_p":0.8, "max_length":120, "repetition_penalty":1})
     return output
 
 # getting the user input
