@@ -66,10 +66,12 @@ relevant_exercises = relevant_exercises[["name","primaryMuscles","category"]]
 # Adjusted function to generate workout suggestion using replicate.run
 def generate_workout_suggestion(prompt_input, relevant_exercises):
     model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
+    
     string_dialogue = f"You are a fitness assistant. Recommend the ideal workout based on the following:\n- User Input: {prompt_input}\n\nAvailable exercises: {relevant_exercises.to_string(index=False)}"
     
     # Debug: Print the prompt
     st.write("Debug: Sending prompt to model:", string_dialogue)
+    
     try:
         generator = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.5, "max_tokens": 150})
         
@@ -78,14 +80,12 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
         
         # Attempt to directly inspect each item yielded by the generator
         for output in generator:
-            # Debug: Print each yielded item
-            st.write("Debug: Output from generator:", output)
+            # Directly print each item yielded by the generator to inspect
+            st.write("Debug: Output from generator (raw):", output)
             
-            # Here, add logic based on the actual structure of `output`
-            # For now, we're just printing to understand what `output` contains
+            # If we can identify a common structure or key here, adjust the next steps accordingly
             
-        # Placeholder for actual handling logic, depending on what's observed in the debug output
-        return "Check debug output for insights."
+        return "Check debug output for insights into the generator's yields."
         
     except Exception as e:
         st.error(f"Debug: An error occurred: {str(e)}")
