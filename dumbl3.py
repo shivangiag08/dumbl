@@ -65,19 +65,41 @@ relevant_exercises = relevant_exercises[["name","primaryMuscles","category"]]
 # function to generate workout suggestion
 # Adjusted function to generate workout suggestion using replicate.run
 def generate_workout_suggestion(prompt_input, relevant_exercises):
+    # Assuming llm variable is set based on user's model selection as in the chatbot example
     model_ref = 'a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5'
     
-    string_dialogue = f"You are a fitness assistant. Recommend the ideal workout based on the following:\n- User Input: {prompt_input}\n\nAvailable exercises: {relevant_exercises.to_string(index=False)}"
+    # Construct the prompt with detailed information
+    string_dialogue = "You are a fitness assistant. Recommend the ideal workout based on the following criteria:\n\n"
+    string_dialogue += f"User Input: {prompt_input}\n\n"
+    string_dialogue += "Available exercises:\n" + relevant_exercises.to_string(index=False) + "\n\n"
     
-    # Debug: Print the prompt
-    st.write("Debug: Sending prompt to model:", string_dialogue)
+    # Parameters for the model call, adjust based on your requirements
+    temperature = 0.5  # Adjust this value as necessary
+    top_p = 0.9  # Adjust this value as necessary
+    max_length = 120  # Adjust this value as necessary
     
     try:
-        generator = replicate.run(model_ref, input={"prompt": string_dialogue, "temperature": 0.5, "max_tokens": 150})
-        item = next(generator, 'No more items')
-        st.write("Attempt to fetch directly from generator:", item)
+        # Call the Replicate API with the constructed prompt and parameters
+        response = replicate.run(model_ref, input={
+            "prompt": string_dialogue,
+            "temperature": temperature,
+            "top_p": top_p,
+            "max_length": max_length,
+            "repetition_penalty": 1
+        })
+        
+        # Initialize an empty string to accumulate the responses
+        full_response = ''
+        for item in response:
+            # Assuming each item in the response is a piece of text
+            full_response += str(item)  # Append each item to the full_response string
+        
+        # Return the accumulated response
+        return full_response if full_response else "No suggestion could be made."
     except Exception as e:
-        st.error(f"Error fetching directly from generator: {e}")
+        # If an error occurs, log it and return a default message
+        st.error(f"An error occurred: {str(e)}")
+        return "No suggestion could be made."
 
 
 
