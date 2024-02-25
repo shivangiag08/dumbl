@@ -84,8 +84,8 @@ def generate_workout_suggestion(prompt_input, relevant_exercises):
 prompt_input = f"I am a {level} and I have {equipment}. I want a workout routine for 3 days this week.Pick out of these exercises and focus on similar regions of the body for each session. Dont try to include everything, pick out a few good exercises and curate the routine with reps and sets mentioned."
 
 # generating the workout suggestion
-workout_suggestion = generate_workout_suggestion(prompt_input, relevant_exercises)
-
-# displaying the workout suggestion
-st.write("**Workout Suggestion:**")
-st.text(workout_suggestion)
+if st.button("Suggest Workout"):
+    workout_suggestion = generate_workout_suggestion(prompt_input, relevant_exercises)
+    # displaying the workout suggestion
+    st.write("**Workout Suggestion:**")
+    st.text(workout_suggestion)
