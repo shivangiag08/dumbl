@@ -6,41 +6,41 @@ import os
 # App title
 st.set_page_config(page_title="Workout Recommender")
 
-'''data = pd.read_json("exercises.json")
-data = data.drop(columns=["images","instructions","mechanic"])
+# data = pd.read_json("exercises.json")
+# data = data.drop(columns=["images","instructions","mechanic"])
 
-equipment_mapping = {
-    "machine":2,
-    "cable":2,
-    "e-z curl bar":2,
-    "barbell":2,
-    "other":2,
+# equipment_mapping = {
+#     "machine":2,
+#     "cable":2,
+#     "e-z curl bar":2,
+#     "barbell":2,
+#     "other":2,
 
-    "dumbbell":1,
-    "kettlebells":1,
-    "medicine ball":1,
-    "bands":1,
-    "exercise ball":1,
-    "foam roll":1,
+#     "dumbbell":1,
+#     "kettlebells":1,
+#     "medicine ball":1,
+#     "bands":1,
+#     "exercise ball":1,
+#     "foam roll":1,
 
-    "body only":0,
-}
+#     "body only":0,
+# }
 
-level_mapping = {
-    "beginner":0,
-    "intermediate":1,
-    "expert":2,
-}
+# level_mapping = {
+#     "beginner":0,
+#     "intermediate":1,
+#     "expert":2,
+# }
 
-data["equipment"] = data["equipment"].map(equipment_mapping)
-data["level"] = data["level"].map(level_mapping)
+# data["equipment"] = data["equipment"].map(equipment_mapping)
+# data["level"] = data["level"].map(level_mapping)
 
-equipment_mapping = {
-    "No equipment":0,
-    "Basic at-home equipment":1,
-    "Access to a Gym":2,}'''
+# equipment_mapping = {
+#     "No equipment":0,
+#     "Basic at-home equipment":1,
+#     "Access to a Gym":2,}
 
-# Replicate Credentials
+    # Replicate Credentials
 with st.sidebar:
     st.title('💪\n Workout Recommender')
     if 'REPLICATE_API_TOKEN' in st.secrets:
